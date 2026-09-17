@@ -1,0 +1,4 @@
+# Runtime dependencies for the PC Health & System Diagnostics Tool.
+# Everything else (CPU / RAM / disk / network / system info) is collected
+# with the Python standard library - no extra packages are required.
+Flask>=3.0.0

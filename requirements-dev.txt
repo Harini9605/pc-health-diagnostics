@@ -1,0 +1,4 @@
+# Development-only dependencies (installed separately from the runtime app).
+# Runtime dependencies live in requirements.txt.
+-r requirements.txt
+pytest>=8.0.0

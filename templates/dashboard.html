@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · {{ app_name }}{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="mb-1 fw-bold">PC Health &amp; System Diagnostics</h3>
+    <span class="text-muted small">
+      Live system report for <strong>{{ info.hostname }}</strong>
+      &middot; collected {{ info.server_time }}
+    </span>
+  </div>
+  <a href="{{ url_for('diagnostics_page') }}" class="btn btn-primary">Run Diagnostics</a>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card h-100"><div class="card-body">
+      <div class="stat-label">CPU usage</div>
+      <div class="stat-value">
+        {% if cpu is not none %}{{ cpu }}<span class="stat-unit">%</span>
+        {% else %}—{% endif %}
+      </div>
+      <small class="text-muted">{{ info.cpu_cores }} core{{ 's' if (info.cpu_cores or 0) != 1 else '' }}</small>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card h-100"><div class="card-body">
+      <div class="stat-label">Memory usage</div>
+      <div class="stat-value">
+        {% if mem %}{{ mem.percent }}<span class="stat-unit">%</span>{% else %}—{% endif %}
+      </div>
+      <small class="text-muted">{{ mem.used|format_bytes if mem else '0 B' }} of
+        {{ mem.total|format_bytes if mem else '0 B' }}</small>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card h-100"><div class="card-body">
+      <div class="stat-label">Internet</div>
+      <div class="stat-value">
+        {% if conn.status == 'online' %}
+          <span class="health-dot hd-ok"></span> Online
+        {% else %}
+          <span class="health-dot hd-bad"></span> Offline
+        {% endif %}
+      </div>
+      <small class="text-muted">
+        {% if conn.response_ms is not none %}{{ conn.response_ms }} ms{% else %}{{ conn.detail }}{% endif %}
+      </small>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card h-100"><div class="card-body">
+      <div class="stat-label">System uptime</div>
+      <div class="stat-value uptime-value">{{ info.uptime }}</div>
+      <small class="text-muted">Since last boot</small>
+    </div></div>
+  </div>
+</div>
+
+<!-- System information + CPU/Memory -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h5 class="fw-semibold mb-3">System information</h5>
+      <table class="table table-sm align-middle mb-0">
+        <tbody>
+          <tr><th class="text-muted info-label">Computer name</th><td>{{ info.hostname }}</td></tr>
+          <tr><th class="text-muted info-label">Windows version</th><td>{{ info.windows_version }}</td></tr>
+          <tr><th class="text-muted info-label">Python version</th><td>{{ info.python_version }}</td></tr>
+          <tr><th class="text-muted info-label">Architecture</th><td>{{ info.architecture }}</td></tr>
+          <tr><th class="text-muted info-label">Processor</th><td>{{ info.processor }}</td></tr>
+          <tr><th class="text-muted info-label">CPU cores</th><td>{{ info.cpu_cores or '—' }}</td></tr>
+          <tr><th class="text-muted info-label">Uptime</th><td>{{ info.uptime }}</td></tr>
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h5 class="fw-semibold mb-3">CPU &amp; memory</h5>
+      <div class="meter-block">
+        <div class="d-flex justify-content-between small mb-1">
+          <span>CPU usage{% if cpu is not none %} (real-time{{ ' sample' }}){% endif %}</span>
+          <strong>{{ cpu if cpu is not none else '—' }}%</strong>
+        </div>
+        <div class="progress meter-track mb-4">
+          <div class="progress-bar {{ 'bg-danger' if (cpu or 0) >= 90 else ('bg-warning' if (cpu or 0) >= 70 else 'bg-success') }}"
+               role="progressbar" style="width: {{ cpu or 0 }}%"></div>
+        </div>
+
+        <div class="d-flex justify-content-between small mb-1">
+          <span>Memory usage</span>
+          <strong>{{ mem.percent if mem else '—' }}%</strong>
+        </div>
+        <div class="progress meter-track mb-3">
+          <div class="progress-bar {{ 'bg-danger' if mem and mem.percent >= 92 else ('bg-warning' if mem and mem.percent >= 80 else 'bg-success') }}"
+               role="progressbar" style="width: {{ mem.percent if mem else 0 }}%"></div>
+        </div>
+        <div class="row small text-muted mb-3">
+          <div class="col-4">Total: <strong>{{ mem.total|format_bytes if mem else '—' }}</strong></div>
+          <div class="col-4">Used: <strong>{{ mem.used|format_bytes if mem else '—' }}</strong></div>
+          <div class="col-4">Available: <strong>{{ mem.available|format_bytes if mem else '—' }}</strong></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- Disk health -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card shadow-sm"><div class="card-body">
+      <h5 class="fw-semibold mb-3">Disk health</h5>
+      {% if disks %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Drive</th>
+              <th>Total</th>
+              <th>Used</th>
+              <th>Free</th>
+              <th style="width: 32%">Usage</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for disk in disks %}
+            <tr>
+              <td><code class="ip-cell">{{ disk.drive }}</code></td>
+              <td>{{ disk.total|format_bytes }}</td>
+              <td>{{ disk.used|format_bytes }}</td>
+              <td>{{ disk.free|format_bytes }}</td>
+              <td>
+                <div class="progress meter-track-sm mb-1">
+                  <div class="progress-bar {{ 'bg-danger' if disk.percent >= 80 else ('bg-warning' if disk.percent >= 60 else 'bg-success') }}"
+                       role="progressbar" style="width: {{ disk.percent }}%"></div>
+                </div>
+                <small class="text-muted">{{ disk.percent }}%</small>
+              </td>
+              <td>
+                {% if disk.percent >= 80 %}
+                  <span class="badge rounded-pill st-warn">High usage</span>
+                {% else %}
+                  <span class="badge rounded-pill st-ok">OK</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-4">No disk information available.</div>
+      {% endif %}
+    </div></div>
+  </div>
+</div>
+
+<!-- Network -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card shadow-sm"><div class="card-body">
+      <h5 class="fw-semibold mb-3">Network information</h5>
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3">
+          <div class="stat-label">Hostname</div>
+          <div class="fw-semibold">{{ info.hostname }}</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-label">Local IP</div>
+          <div class="fw-semibold">{{ ipv4 or '—' }}</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-label">Default gateway</div>
+          <div class="fw-semibold">{{ gateway or '—' }}</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-label">Internet check</div>
+          <div class="fw-semibold">
+            {% if conn.status == 'online' %}
+              <span class="health-dot hd-ok"></span> Online
+            {% else %}
+              <span class="health-dot hd-bad"></span> Offline
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if adapters %}
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Adapter</th>
+              <th>State</th>
+              <th>MAC</th>
+              <th>IPv4</th>
+              <th>Gateway</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for adapter in adapters %}
+            <tr>
+              <td>{{ adapter.name }}</td>
+              <td>
+                {% if adapter.status == 'Connected' %}
+                  <span class="badge rounded-pill st-ok">Connected</span>
+                {% elif adapter.status == 'Disconnected' %}
+                  <span class="badge rounded-pill st-warn">Disconnected</span>
+                {% else %}
+                  <span class="badge rounded-pill st-muted">{{ adapter.status }}</span>
+                {% endif %}
+              </td>
+              <td><code class="ip-cell">{{ adapter.mac or '—' }}</code></td>
+              <td><code class="ip-cell">{{ adapter.ipv4 or '—' }}</code></td>
+              <td><code class="ip-cell">{{ adapter.gateway or '—' }}</code></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-3">No network adapter information available.</div>
+      {% endif %}
+    </div></div>
+  </div>
+</div>
+{% endblock %}

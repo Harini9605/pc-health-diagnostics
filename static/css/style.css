@@ -1,0 +1,145 @@
+/* ============================================================
+   PC Health & Diagnostics - custom styles layered on Bootstrap 5
+   ============================================================ */
+
+:root {
+  --nm-primary: #0ea5e9;
+  --nm-dark: #082f49;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* ---------- Navbar ---------- */
+.app-navbar {
+  background: linear-gradient(90deg, var(--nm-dark) 0%, var(--nm-primary) 100%);
+}
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--nm-primary);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+/* ---------- Stat cards ---------- */
+.stat-card {
+  border-left: 4px solid var(--nm-primary);
+  border-radius: 12px;
+}
+.stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.stat-value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #0f172a;
+}
+.stat-unit {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+}
+.uptime-value {
+  font-size: 1.35rem;
+}
+
+/* ---------- Health indicators ---------- */
+.health-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.hd-ok   { background-color: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.25); }
+.hd-warn { background-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.25); }
+.hd-bad  { background-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.25); }
+
+/* ---------- Meters / progress ---------- */
+.meter-track {
+  height: 14px;
+  border-radius: 8px;
+  background: #e2e8f0;
+}
+.meter-track-sm {
+  height: 8px;
+  border-radius: 5px;
+  background: #e2e8f0;
+}
+
+/* ---------- Badges ---------- */
+.st-ok    { background-color: #dcfce7; color: #15803d; font-weight: 600; }
+.st-warn  { background-color: #fef3c7; color: #b45309; font-weight: 600; }
+.st-bad   { background-color: #fee2e2; color: #b91c1c; font-weight: 600; }
+.st-muted { background-color: #e2e8f0; color: #475569; font-weight: 600; }
+
+/* ---------- Tables ---------- */
+.info-label {
+  font-weight: 600;
+  width: 40%;
+}
+.ip-cell {
+  font-family: "Consolas", "Cascadia Code", monospace;
+  font-size: 0.82rem;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* ---------- Verdict card ---------- */
+.verdict-card { border-radius: 14px; border-left-width: 6px; }
+.verdict-healthy { border-left-color: #16a34a; }
+.verdict-warning { border-left-color: #d97706; }
+.verdict-error   { border-left-color: #dc2626; }
+
+/* ---------- Diagnostics empty state ---------- */
+.diagnostic-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+/* ---------- Recommendations ---------- */
+.rec-mark {
+  color: var(--nm-primary);
+  font-weight: 700;
+}
+
+/* ---------- Error page ---------- */
+.error-code {
+  font-size: 4.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* ---------- Print: only the report itself ---------- */
+@media print {
+  .app-navbar, footer, .d-print-none, .alert { display: none !important; }
+  body { background: #fff; }
+}
+
+/* ---------- Footer ---------- */
+main {
+  min-height: calc(100vh - 150px);
+}

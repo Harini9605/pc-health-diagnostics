@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Diagnostics · {{ app_name }}{% endblock %}
+
+{% block content %}
+{% if report %}
+<!-- Report header -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 print-header">
+  <div>
+    <h3 class="mb-1 fw-bold">System Diagnostics Report</h3>
+    <span class="text-muted small">
+      Computer: <strong>{{ info.hostname }}</strong> &middot;
+      Run at: <strong>{{ report.run_at }}</strong>
+    </span>
+  </div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary d-print-none"
+            onclick="window.print()">Print / Save as PDF</button>
+    <form method="post" action="{{ url_for('run_diagnostics') }}" class="d-inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-primary d-print-none">Re-run Diagnostics</button>
+    </form>
+  </div>
+</div>
+
+<!-- Overall verdict -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card verdict-card {{ 'verdict-error' if report.overall == 'error' else ('verdict-warning' if report.overall == 'warning' else 'verdict-healthy') }}">
+      <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+          <div class="stat-label">Overall health</div>
+          <div class="fs-4 fw-bold">{{ report.overall_label }}</div>
+        </div>
+        <span class="health-dot hd-{{ 'ok' if report.overall == 'healthy' else ('warn' if report.overall == 'warning' else 'bad') }}"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Checks summary -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="fw-semibold mb-3">Checks performed</h5>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Check</th>
+            <th>Result</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for check in report.checks %}
+          <tr>
+            <td class="fw-semibold">{{ check.name }}</td>
+            <td>{{ check.value }}</td>
+            <td>
+              {% if check.status == 'healthy' %}
+                <span class="badge rounded-pill st-ok">Healthy</span>
+              {% elif check.status == 'warning' %}
+                <span class="badge rounded-pill st-warn">Warning</span>
+              {% else %}
+                <span class="badge rounded-pill st-bad">Error</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Recommendations -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="fw-semibold mb-3">Recommended actions</h5>
+    {% if report.recommendations %}
+      {% for rec in report.recommendations %}
+      <div class="d-flex gap-2 mb-2">
+        <span class="rec-mark">→</span>
+        <span>{{ rec }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="text-muted">All checks passed - no actions required.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- System summary for the report -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="fw-semibold mb-3">System summary</h5>
+    <table class="table table-sm align-middle mb-0">
+      <tbody>
+        <tr><th class="text-muted info-label">Computer name</th><td>{{ info.hostname }}</td></tr>
+        <tr><th class="text-muted info-label">Windows version</th><td>{{ info.windows_version }}</td></tr>
+        <tr><th class="text-muted info-label">Python version</th><td>{{ info.python_version }}</td></tr>
+        <tr><th class="text-muted info-label">Architecture</th><td>{{ info.architecture }}</td></tr>
+        <tr><th class="text-muted info-label">Processor</th><td>{{ info.processor }}</td></tr>
+        <tr><th class="text-muted info-label">Uptime</th><td>{{ info.uptime }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% else %}
+<!-- Not run yet -->
+<div class="row justify-content-center text-center">
+  <div class="col-12 col-md-7 col-lg-6">
+    <div class="card shadow-sm border-0">
+      <div class="card-body py-5">
+        <div class="diagnostic-icon mb-2">DIAG</div>
+        <h4 class="fw-bold">System Diagnostics</h4>
+        <p class="text-muted">
+          Run a full diagnostic check on this PC.
+          The tool collects <strong>real</strong> CPU, memory, disk and network
+          data and reports each one as <strong>Healthy</strong>,
+          <strong>Warning</strong> or <strong>Error</strong> with practical
+          recommended actions.
+        </p>
+        <form method="post" action="{{ url_for('run_diagnostics') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-primary px-4">Run Diagnostics</button>
+        </form>
+        <div class="text-muted small mt-3">
+          Diagnostics take a few seconds (CPU usage is sampled over a short interval).
+          No system changes are made.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
